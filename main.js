@@ -1,7 +1,7 @@
 (() => {
-  const TILE = 32;
+  const TILE = 8;
   const MAP_W = 16;
-  const MAP_H = 12;
+  const MAP_H = 16;
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
@@ -52,6 +52,10 @@
     [1,5,5,5,1,0,0,0,1,0,0,0,1,7,7,1],
     [1,5,0,5,1,1,1,0,1,1,1,0,1,7,0,1],
     [1,5,5,5,1,8,1,0,0,0,1,0,1,7,7,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,0,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
+    [1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,1],
+    [1,1,1,1,1,0,1,0,0,0,1,1,0,1,0,1],
     [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
     [1,0,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -227,14 +231,14 @@
       ctx.fillStyle = fill;
       ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
       ctx.strokeStyle = colors.grid;
-      ctx.strokeRect(x*TILE, y*TILE, TILE, TILE);
+      ctx.strokeRect(x*TILE + 0.5, y*TILE + 0.5, TILE, TILE);
     }
-    // player pixel body
+    // 8x8 player pixel body
     const px = state.player.x*TILE, py = state.player.y*TILE;
-    ctx.fillStyle = '#79b8ff'; ctx.fillRect(px+9, py+7, 14, 18);
-    ctx.fillStyle = '#dbeafe'; ctx.fillRect(px+11, py+4, 10, 8);
-    ctx.fillStyle = '#0b1020'; ctx.fillRect(px+13, py+7, 2, 2); ctx.fillRect(px+18, py+7, 2, 2);
-    ctx.fillStyle = '#1f5f9c'; ctx.fillRect(px+7, py+25, 6, 4); ctx.fillRect(px+19, py+25, 6, 4);
+    ctx.fillStyle = '#dbeafe'; ctx.fillRect(px+2, py+1, 4, 3);
+    ctx.fillStyle = '#79b8ff'; ctx.fillRect(px+2, py+4, 4, 3);
+    ctx.fillStyle = '#0b1020'; ctx.fillRect(px+3, py+2, 1, 1); ctx.fillRect(px+5, py+2, 1, 1);
+    ctx.fillStyle = '#1f5f9c'; ctx.fillRect(px+1, py+7, 2, 1); ctx.fillRect(px+5, py+7, 2, 1);
   }
 
   function renderUI() {

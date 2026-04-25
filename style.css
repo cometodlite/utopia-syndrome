@@ -91,9 +91,12 @@ p { margin: 0; }
 .hud b { color: var(--muted); }
 .stage-wrap { grid-area: stage; padding: 12px; }
 canvas {
-  width: 100%;
-  max-height: 70vh;
+  display: block;
+  width: min(512px, 100%);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
   border-radius: 12px;
   background: #0b1020;
   border: 1px solid var(--line);
