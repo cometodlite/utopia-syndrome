@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>UTOPIA SYNDROME Pixel Alpha</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <h1>UTOPIA SYNDROME</h1>
+        <p>Pixel Alpha 0.1 · Single Survival</p>
+      </div>
+      <button id="resetBtn" class="ghost">초기화</button>
+    </header>
+
+    <section id="startScreen" class="panel start-panel">
+      <h2>특성을 선택하세요</h2>
+      <p class="muted">UTOPIA SYNDROME은 기본 모드가 싱글 서바이벌입니다. 하나의 특성을 고르고 시설 내부에서 최대한 오래 살아남으세요.</p>
+      <div class="trait-grid">
+        <button class="trait-card" data-trait="격리">
+          <strong>격리</strong>
+          <span>기지 안정도와 격리 점검에 유리</span>
+        </button>
+        <button class="trait-card" data-trait="연구">
+          <strong>연구</strong>
+          <span>지능과 DNA 연구에 유리</span>
+        </button>
+        <button class="trait-card" data-trait="전투">
+          <strong>전투</strong>
+          <span>체력과 근력 중심 생존</span>
+        </button>
+        <button class="trait-card" data-trait="피실험">
+          <strong>피실험</strong>
+          <span>각성과 DNA 적응에 유리하지만 위험</span>
+        </button>
+      </div>
+    </section>
+
+    <main id="gameScreen" class="game hidden">
+      <section class="hud panel">
+        <div><b>DAY</b><span id="dayText">1</span></div>
+        <div><b>HP</b><span id="hpText">100/100</span></div>
+        <div><b>정신</b><span id="sanityText">100</span></div>
+        <div><b>오염</b><span id="contamText">0</span></div>
+        <div><b>기지</b><span id="baseText">100</span></div>
+        <div><b>쿼츠</b><span id="quartzText">100</span></div>
+      </section>
+
+      <section class="stage-wrap panel">
+        <canvas id="game" width="512" height="384" aria-label="UTOPIA SYNDROME 2D pixel game canvas"></canvas>
+        <div class="controls-help">
+          <span>WASD/방향키 이동</span>
+          <span>E 상호작용</span>
+          <span>Shift 달리기</span>
+          <span>N 다음 날</span>
+        </div>
+      </section>
+
+      <aside class="side panel">
+        <h2>플레이어</h2>
+        <div id="playerInfo" class="info-list"></div>
+        <hr />
+        <h2>현재 위치</h2>
+        <p id="roomText" class="room-name">중앙 복도</p>
+        <button id="interactBtn" class="primary">상호작용 [E]</button>
+        <button id="nextDayBtn" class="ghost">다음 날 [N]</button>
+        <hr />
+        <h2>DNA 상점</h2>
+        <div id="dnaShop" class="shop-list"></div>
+      </aside>
+
+      <section class="log panel">
+        <h2>LOG</h2>
+        <div id="logList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
