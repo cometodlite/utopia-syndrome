@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>UTOPIA SYNDROME Pixel Alpha</title>
+  <title>UTOPIA SYNDROME Pixel Alpha 0.2 Story</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,36 +11,45 @@
     <header class="topbar">
       <div>
         <h1>UTOPIA SYNDROME</h1>
-        <p>Pixel Alpha 0.1.1-128 · 128x128 Single Survival</p>
+        <p>Pixel Alpha 0.2 · 128x128 Story Mode</p>
       </div>
       <button id="resetBtn" class="ghost">초기화</button>
     </header>
 
-    <section id="startScreen" class="panel start-panel">
+    <section id="titleScreen" class="panel start-panel title-panel">
+      <p class="eyebrow">USI INTERNAL ACCESS</p>
+      <h2>모드를 선택하세요</h2>
+      <p class="muted">SCP풍 변칙개체 격리시설에서 살아남는 2D 픽셀 싱글 서바이벌 웹게임입니다.</p>
+      <div class="mode-grid">
+        <button id="survivalBtn" class="mode-card">
+          <strong>Survival Mode</strong>
+          <span>Day 기반 자유 생존 / 랜덤 격리 실패 / 최대 생존일 목표</span>
+        </button>
+        <button id="storyBtn" class="mode-card primary-card">
+          <strong>Story Mode</strong>
+          <span>USI 신입 배정 / Chapter 0 / 52Hz Signal 도입</span>
+        </button>
+        <button id="continueBtn" class="mode-card">
+          <strong>Continue</strong>
+          <span>저장된 진행을 이어서 시작</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="startScreen" class="panel start-panel hidden">
       <h2>특성을 선택하세요</h2>
-      <p class="muted">UTOPIA SYNDROME은 기본 모드가 싱글 서바이벌입니다. 하나의 특성을 고르고 시설 내부에서 최대한 오래 살아남으세요.</p>
+      <p id="startDescription" class="muted">하나의 특성을 고르고 시설 내부에서 최대한 오래 살아남으세요.</p>
       <div class="trait-grid">
-        <button class="trait-card" data-trait="격리">
-          <strong>격리</strong>
-          <span>기지 안정도와 격리 점검에 유리</span>
-        </button>
-        <button class="trait-card" data-trait="연구">
-          <strong>연구</strong>
-          <span>지능과 DNA 연구에 유리</span>
-        </button>
-        <button class="trait-card" data-trait="전투">
-          <strong>전투</strong>
-          <span>체력과 근력 중심 생존</span>
-        </button>
-        <button class="trait-card" data-trait="피실험">
-          <strong>피실험</strong>
-          <span>각성과 DNA 적응에 유리하지만 위험</span>
-        </button>
+        <button class="trait-card" data-trait="격리"><strong>격리</strong><span>기지 안정도와 격리 점검에 유리</span></button>
+        <button class="trait-card" data-trait="연구"><strong>연구</strong><span>지능과 DNA 연구에 유리</span></button>
+        <button class="trait-card" data-trait="전투"><strong>전투</strong><span>체력과 근력 중심 생존</span></button>
+        <button class="trait-card" data-trait="피실험"><strong>피실험</strong><span>각성과 DNA 적응에 유리하지만 위험</span></button>
       </div>
     </section>
 
     <main id="gameScreen" class="game hidden">
       <section class="hud panel">
+        <div><b>MODE</b><span id="modeText">-</span></div>
         <div><b>DAY</b><span id="dayText">1</span></div>
         <div><b>HP</b><span id="hpText">100/100</span></div>
         <div><b>정신</b><span id="sanityText">100</span></div>
@@ -51,12 +60,8 @@
 
       <section class="stage-wrap panel">
         <canvas id="game" width="128" height="128" aria-label="UTOPIA SYNDROME 128x128 2D pixel game canvas"></canvas>
-        <div class="controls-help">
-          <span>WASD/방향키 이동</span>
-          <span>E 상호작용</span>
-          <span>Shift 달리기</span>
-          <span>N 다음 날</span>
-        </div>
+        <div class="objective-box"><b>목표</b><span id="objectiveText">-</span></div>
+        <div class="controls-help"><span>WASD/방향키 이동</span><span>E 상호작용</span><span>Shift 달리기</span><span>N 다음 날</span></div>
       </section>
 
       <aside class="side panel">
@@ -72,11 +77,17 @@
         <div id="dnaShop" class="shop-list"></div>
       </aside>
 
-      <section class="log panel">
-        <h2>LOG</h2>
-        <div id="logList"></div>
-      </section>
+      <section class="log panel"><h2>LOG</h2><div id="logList"></div></section>
     </main>
+  </div>
+
+  <div id="dialogueOverlay" class="dialogue-overlay hidden">
+    <div class="dialogue-box panel">
+      <div id="dialogueSpeaker" class="dialogue-speaker">SYSTEM</div>
+      <div id="dialogueText" class="dialogue-text"></div>
+      <div id="choiceList" class="choice-list hidden"></div>
+      <button id="dialogueNextBtn" class="primary">다음</button>
+    </div>
   </div>
 
   <script src="main.js"></script>
