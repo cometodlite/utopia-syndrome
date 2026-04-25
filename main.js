@@ -2,8 +2,10 @@
   const TILE = 8;
   const MAP_W = 16;
   const MAP_H = 16;
+  const SAVE_KEY = 'utopia_pixel_alpha_save';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
 
   const els = {
     start: document.getElementById('startScreen'),
@@ -40,36 +42,69 @@
     6: '관리실',
     7: '고위험 격리문',
     8: '교회 통신 단말',
+    9: '보안문',
   };
 
+  // 16x16 map / 8x8 tile / 128x128 internal resolution
+  // 0 floor, 1 wall, 2 gym, 3 lab, 4 dna, 5 low containment, 6 office, 7 high gate, 8 church terminal, 9 door
   const map = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,2,2,2,1,3,3,3,1,4,4,4,1,6,6,1],
+    [1,2,2,2,9,3,3,3,9,4,4,4,9,6,6,1],
     [1,2,0,2,1,3,0,3,1,4,0,4,1,6,0,1],
     [1,2,2,2,1,3,3,3,1,4,4,4,1,6,6,1],
+    [1,9,1,1,1,9,1,1,1,9,1,1,1,9,0,1],
     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1],
     [1,5,5,5,1,0,0,0,1,0,0,0,1,7,7,1],
-    [1,5,0,5,1,1,1,0,1,1,1,0,1,7,0,1],
-    [1,5,5,5,1,8,1,0,0,0,1,0,1,7,7,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
-    [1,0,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
-    [1,0,0,0,0,0,1,0,1,0,0,0,0,1,0,1],
-    [1,1,1,1,1,0,1,0,0,0,1,1,0,1,0,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
+    [1,5,0,5,9,0,1,0,9,0,1,0,9,7,0,1],
+    [1,5,5,5,1,8,1,0,1,0,1,0,1,7,7,1],
+    [1,0,1,1,1,9,1,0,1,0,1,9,1,1,0,1],
+    [1,0,0,0,0,0,1,0,0,0,1,0,0,1,0,1],
+    [1,1,1,1,1,0,1,1,1,0,1,1,0,1,0,1],
+    [1,0,0,0,9,0,0,0,1,0,0,0,0,0,0,1],
     [1,0,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   ];
 
-  const colors = {
-    floor: '#172033', wall: '#38445e', gym: '#234d3a', lab: '#273f66', dna: '#50396d',
-    low: '#4a4526', office: '#344354', high: '#63313a', church: '#463957', grid: '#26344f'
+  const palette = {
+    void: '#07101d',
+    floor: '#121b2e',
+    floor2: '#17233b',
+    grid: '#233455',
+    wall: '#32435f',
+    wallHi: '#445a7d',
+    wallShadow: '#1d2a42',
+    door: '#8b6d35',
+    doorHi: '#d7b761',
+    gym: '#164b35',
+    gym2: '#1f6549',
+    lab: '#1e3e6b',
+    lab2: '#2a5790',
+    dna: '#4e2f68',
+    dna2: '#6f4394',
+    low: '#4b4322',
+    low2: '#70602a',
+    office: '#2d4052',
+    office2: '#3f5b73',
+    high: '#632d3a',
+    high2: '#8f4051',
+    church: '#453050',
+    church2: '#714a81',
+    playerSkin: '#dbeafe',
+    playerSuit: '#7cc7ff',
+    playerSuit2: '#1f5f9c',
+    black: '#08111f',
+    white: '#e9f2ff',
+    red: '#ff6875',
+    green: '#72e4a1',
+    yellow: '#ffd166',
+    cyan: '#67e8f9',
   };
 
   const defaultState = (trait = null) => {
     const state = {
       started: Boolean(trait), trait, day: 1, action: 3,
-      player: { x: 2, y: 4, dir: 'down' },
+      player: { x: 7, y: 5, dir: 'down' },
       stats: { str: 0, vit: 0, awake: 0, int: 0, point: 0, barrier: 1, ahKey: 0, dbKey: 0 },
       survival: { hp: 100, maxHp: 100, sanity: 100, contam: 0, base: 100 },
       quartz: 100, bingoCode: 0, inventory: [], logs: []
@@ -85,8 +120,8 @@
   const keys = new Set();
   let lastMove = 0;
 
-  function save() { localStorage.setItem('utopia_pixel_alpha_save', JSON.stringify(state)); }
-  function load() { try { return JSON.parse(localStorage.getItem('utopia_pixel_alpha_save')); } catch { return null; } }
+  function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+  function load() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { return null; } }
   function log(msg) { state.logs.unshift(msg); state.logs = state.logs.slice(0, 18); save(); renderUI(); }
 
   function start(trait) {
@@ -108,7 +143,7 @@
 
   function interact() {
     const tile = tileAt(state.player.x, state.player.y);
-    if (state.action <= 0 && ![4,6].includes(tile)) return log('오늘 행동력이 부족합니다. N으로 다음 날을 진행하세요.');
+    if (state.action <= 0 && ![4,6,9].includes(tile)) return log('오늘 행동력이 부족합니다. N으로 다음 날을 진행하세요.');
     switch (tile) {
       case 2:
         state.stats.point += 1;
@@ -146,6 +181,9 @@
         state.survival.sanity = Math.max(0, state.survival.sanity - 5);
         state.stats.awake += 1;
         log('교회 통신 단말에서 알 수 없는 찬송 신호를 수신했습니다. 각성 +1, 정신 -5.');
+        break;
+      case 9:
+        log('보안문입니다. 시설 구역과 중앙 복도를 잇고 있습니다.');
         break;
       default:
         log('중앙 복도입니다. 주변 시설로 이동하세요.');
@@ -209,36 +247,131 @@
     else if (s.base <= 0) reason = '기지가 붕괴했습니다.';
     if (reason) {
       alert(`GAME OVER\n${reason}\n생존 일수: ${state.day}일`);
-      localStorage.removeItem('utopia_pixel_alpha_save');
+      localStorage.removeItem(SAVE_KEY);
       state = defaultState();
       renderUI();
     }
   }
 
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    for (let y=0; y<MAP_H; y++) for (let x=0; x<MAP_W; x++) {
-      const t = tileAt(x,y);
-      let fill = colors.floor;
-      if (t === 1) fill = colors.wall;
-      if (t === 2) fill = colors.gym;
-      if (t === 3) fill = colors.lab;
-      if (t === 4) fill = colors.dna;
-      if (t === 5) fill = colors.low;
-      if (t === 6) fill = colors.office;
-      if (t === 7) fill = colors.high;
-      if (t === 8) fill = colors.church;
-      ctx.fillStyle = fill;
-      ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-      ctx.strokeStyle = colors.grid;
-      ctx.strokeRect(x*TILE + 0.5, y*TILE + 0.5, TILE, TILE);
+  function rect(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
+  function pixel(x, y, c) { rect(x, y, 1, 1, c); }
+
+  function drawBaseTile(x, y, t) {
+    const px = x * TILE, py = y * TILE;
+    if (t === 1) {
+      rect(px, py, TILE, TILE, palette.wallShadow);
+      rect(px, py, TILE, 2, palette.wallHi);
+      rect(px, py + 2, TILE, 5, palette.wall);
+      pixel(px + 1, py + 3, palette.grid);
+      pixel(px + 6, py + 5, palette.grid);
+      return;
     }
-    // 8x8 player pixel body
-    const px = state.player.x*TILE, py = state.player.y*TILE;
-    ctx.fillStyle = '#dbeafe'; ctx.fillRect(px+2, py+1, 4, 3);
-    ctx.fillStyle = '#79b8ff'; ctx.fillRect(px+2, py+4, 4, 3);
-    ctx.fillStyle = '#0b1020'; ctx.fillRect(px+3, py+2, 1, 1); ctx.fillRect(px+5, py+2, 1, 1);
-    ctx.fillStyle = '#1f5f9c'; ctx.fillRect(px+1, py+7, 2, 1); ctx.fillRect(px+5, py+7, 2, 1);
+    if (t === 9) {
+      rect(px, py, TILE, TILE, palette.floor);
+      rect(px, py + 3, TILE, 2, palette.door);
+      rect(px + 1, py + 2, 6, 1, palette.doorHi);
+      rect(px + 1, py + 5, 6, 1, palette.doorHi);
+      return;
+    }
+    const base = {
+      0: palette.floor,
+      2: palette.gym,
+      3: palette.lab,
+      4: palette.dna,
+      5: palette.low,
+      6: palette.office,
+      7: palette.high,
+      8: palette.church,
+    }[t] || palette.floor;
+    const hi = {
+      0: palette.floor2,
+      2: palette.gym2,
+      3: palette.lab2,
+      4: palette.dna2,
+      5: palette.low2,
+      6: palette.office2,
+      7: palette.high2,
+      8: palette.church2,
+    }[t] || palette.floor2;
+    rect(px, py, TILE, TILE, base);
+    // Micro floor pattern: makes 8x8 tiles readable after 4x scaling.
+    if ((x + y) % 2 === 0) pixel(px + 1, py + 1, hi);
+    if ((x * 3 + y) % 4 === 0) pixel(px + 6, py + 5, hi);
+    rect(px, py, TILE, 1, 'rgba(255,255,255,0.05)');
+    rect(px, py + 7, TILE, 1, 'rgba(0,0,0,0.12)');
+  }
+
+  function drawFacilityIcon(x, y, type) {
+    const px = x * TILE, py = y * TILE;
+    if (type === 2) { // gym: dumbbell
+      rect(px + 1, py + 3, 1, 2, palette.white); rect(px + 6, py + 3, 1, 2, palette.white);
+      rect(px + 2, py + 4, 4, 1, palette.green);
+    }
+    if (type === 3) { // lab: monitor
+      rect(px + 2, py + 2, 4, 3, palette.cyan); rect(px + 3, py + 5, 2, 1, palette.white); pixel(px + 5, py + 3, palette.black);
+    }
+    if (type === 4) { // DNA helix
+      pixel(px + 2, py + 1, palette.green); pixel(px + 5, py + 1, palette.cyan);
+      pixel(px + 3, py + 2, palette.cyan); pixel(px + 4, py + 2, palette.green);
+      pixel(px + 3, py + 4, palette.green); pixel(px + 4, py + 4, palette.cyan);
+      pixel(px + 2, py + 6, palette.cyan); pixel(px + 5, py + 6, palette.green);
+    }
+    if (type === 5) { // low containment: lock
+      rect(px + 2, py + 3, 4, 3, palette.yellow); rect(px + 3, py + 1, 2, 2, palette.yellow); pixel(px + 4, py + 5, palette.black);
+    }
+    if (type === 6) { // office: terminal
+      rect(px + 2, py + 2, 4, 3, palette.white); rect(px + 3, py + 3, 2, 1, palette.black); rect(px + 2, py + 6, 4, 1, palette.cyan);
+    }
+    if (type === 7) { // high containment: warning
+      rect(px + 1, py + 6, 6, 1, palette.red); rect(px + 2, py + 4, 4, 1, palette.red); rect(px + 3, py + 2, 2, 1, palette.red); pixel(px + 4, py + 5, palette.yellow);
+    }
+    if (type === 8) { // church terminal: cross antenna
+      rect(px + 3, py + 1, 2, 6, palette.white); rect(px + 1, py + 3, 6, 1, palette.white); pixel(px + 4, py + 6, palette.cyan);
+    }
+  }
+
+  function drawPlayer() {
+    const px = state.player.x * TILE;
+    const py = state.player.y * TILE;
+    // shadow
+    rect(px + 2, py + 7, 4, 1, 'rgba(0,0,0,0.4)');
+    // head / visor
+    rect(px + 2, py + 1, 4, 3, palette.playerSkin);
+    rect(px + 3, py + 2, 2, 1, palette.black);
+    // suit
+    rect(px + 2, py + 4, 4, 3, palette.playerSuit);
+    rect(px + 1, py + 5, 1, 1, palette.playerSuit2);
+    rect(px + 6, py + 5, 1, 1, palette.playerSuit2);
+    // legs direction hint
+    if (state.player.dir === 'left') { rect(px + 1, py + 7, 2, 1, palette.playerSuit2); rect(px + 4, py + 7, 2, 1, palette.playerSuit2); }
+    else if (state.player.dir === 'right') { rect(px + 2, py + 7, 2, 1, palette.playerSuit2); rect(px + 5, py + 7, 2, 1, palette.playerSuit2); }
+    else { rect(px + 2, py + 7, 2, 1, palette.playerSuit2); rect(px + 5, py + 7, 2, 1, palette.playerSuit2); }
+  }
+
+  function drawScanlines() {
+    for (let y = 0; y < 128; y += 4) rect(0, y, 128, 1, 'rgba(255,255,255,0.025)');
+    rect(0, 0, 128, 1, 'rgba(255,255,255,0.08)');
+    rect(0, 127, 128, 1, 'rgba(0,0,0,0.2)');
+  }
+
+  function draw() {
+    ctx.imageSmoothingEnabled = false;
+    rect(0, 0, canvas.width, canvas.height, palette.void);
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) drawBaseTile(x, y, tileAt(x, y));
+    }
+    // facility icons only on the central tile of room clusters to avoid clutter
+    drawFacilityIcon(2, 2, 2);
+    drawFacilityIcon(6, 2, 3);
+    drawFacilityIcon(10, 2, 4);
+    drawFacilityIcon(14, 2, 6);
+    drawFacilityIcon(2, 8, 5);
+    drawFacilityIcon(14, 8, 7);
+    drawFacilityIcon(5, 9, 8);
+    // containment warning strips
+    for (let x = 13; x <= 14; x++) { pixel(x * TILE + 1, 7 * TILE + 1, palette.yellow); pixel(x * TILE + 5, 9 * TILE + 6, palette.yellow); }
+    drawPlayer();
+    drawScanlines();
   }
 
   function renderUI() {
@@ -265,7 +398,7 @@
   document.querySelectorAll('.trait-card').forEach(btn => btn.addEventListener('click', () => start(btn.dataset.trait)));
   els.interact.addEventListener('click', interact);
   els.nextDay.addEventListener('click', nextDay);
-  els.reset.addEventListener('click', () => { if (confirm('저장 데이터를 초기화할까요?')) { localStorage.removeItem('utopia_pixel_alpha_save'); state = defaultState(); renderUI(); } });
+  els.reset.addEventListener('click', () => { if (confirm('저장 데이터를 초기화할까요?')) { localStorage.removeItem(SAVE_KEY); state = defaultState(); renderUI(); } });
   els.dnaShop.addEventListener('click', e => { if (e.target.matches('button[data-dna]')) buyDna(e.target.dataset.dna, Number(e.target.dataset.price)); });
 
   window.addEventListener('keydown', e => {
