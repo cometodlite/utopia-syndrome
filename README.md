@@ -1,4 +1,4 @@
-# UTOPIA SYNDROME Pixel Alpha 0.2 - Story Mode
+# UTOPIA SYNDROME Pixel Alpha 0.2.1 - Story Mode Control Fix
 
 SCP풍 변칙개체 격리 세계관 `UTOPIA SYNDROME`을 기반으로 한 2D 픽셀 싱글 서바이벌 웹게임 알파 버전입니다.
 
@@ -112,3 +112,9 @@ USI 신입 인원으로 배정됩니다.
 - 빙고코드 / 빙고해독코드 시스템
 - 광맥 / 산맥 탐사
 - 모바일 가상 조이스틱
+
+
+## 0.2.1 수정 사항
+- Story Mode에서 WASD가 한글 입력 상태에서 먹지 않던 문제를 수정했습니다.
+- 키 입력 판정을 `e.key`가 아닌 `e.code` 기반으로 변경했습니다.
+- 대사창은 Enter 또는 Space로 넘길 수 있습니다. 대사창이 열려 있는 동안에는 이동이 잠시 잠깁니다.

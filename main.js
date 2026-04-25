@@ -53,7 +53,7 @@
   function chooseMode(mode){ pendingMode = mode; els.startDescription.textContent = mode === 'story' ? 'Story Mode: USI 신입 인원으로 배정되어 Chapter 0부터 사건을 따라갑니다.' : 'Survival Mode: 하나의 특성을 고르고 시설 내부에서 최대한 오래 살아남으세요.'; state = defaultState(null, mode); state.screen='start'; renderUI(); }
   function start(trait){ state = defaultState(trait, pendingMode); state.screen='game'; state.started = true; if (pendingMode === 'story') startStory(); else log(`${trait} 특성으로 생존을 시작했습니다.`); save(); renderUI(); }
   function startStory(){ state.story.chapter=0; state.story.step=0; state.story.objective='관리실의 SITE 단말기를 확인하라.'; state.player.x=7; state.player.y=5; log('Story Mode 시작: Chapter 0. 신입 배정'); showDialogue([
-    ['SYSTEM','당신은 USI에 새로 배정된 관리 인원입니다.'],['SYSTEM','임무는 단순합니다.\n개체를 확인하고, 보고서를 작성하고, 살아남으십시오.'],['오퍼레이터','신입 인원 확인 완료. 먼저 관리실의 SITE 단말기로 이동하세요.']
+    ['SYSTEM','당신은 USI에 새로 배정된 관리 인원입니다.'],['SYSTEM','임무는 단순합니다.\n개체를 확인하고, 보고서를 작성하고, 살아남으십시오.'],['오퍼레이터','신입 인원 확인 완료. 먼저 관리실의 SITE 단말기로 이동하세요.\n※ 대사창은 Enter/Space 또는 다음 버튼으로 넘길 수 있습니다.']
   ]); }
 
   function tileAt(x,y){ return map[y]?.[x] ?? 1; } function isBlocked(x,y){ return tileAt(x,y)===1; } function currentRoom(){ return roomNames[tileAt(state.player.x,state.player.y)] || '중앙 복도'; }
@@ -102,7 +102,27 @@
   els.survivalBtn.onclick=()=>chooseMode('survival'); els.storyBtn.onclick=()=>chooseMode('story'); els.continueBtn.onclick=()=>{ const saved=load(); if(saved){ state=saved; state.screen='game'; renderUI(); } else alert('저장된 데이터가 없습니다.'); };
   document.querySelectorAll('.trait-card').forEach(btn=>btn.addEventListener('click',()=>start(btn.dataset.trait))); els.interact.onclick=interact; els.nextDay.onclick=nextDay; els.next.onclick=nextDialogue; els.reset.onclick=()=>{ if(confirm('저장 데이터를 초기화할까요?')){ localStorage.removeItem(SAVE_KEY); state=defaultState(); renderUI(); } };
   els.dnaShop.addEventListener('click',e=>{ if(e.target.matches('button[data-dna]')) buyDna(e.target.dataset.dna, Number(e.target.dataset.price)); });
-  window.addEventListener('keydown',e=>{ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Shift'].includes(e.key)) e.preventDefault(); if(e.key.toLowerCase()==='e') interact(); if(e.key.toLowerCase()==='n') nextDay(); if(e.key==='Enter' && dialogue.length) nextDialogue(); keys.add(e.key.toLowerCase()); }); window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
-  function loop(t){ if(state.screen==='game' && state.started && !dialogue.length && !choiceActive && t-lastMove>(keys.has('shift')?90:150)){ if(keys.has('w')||keys.has('arrowup')){tryMove(0,-1,'up');lastMove=t;} else if(keys.has('s')||keys.has('arrowdown')){tryMove(0,1,'down');lastMove=t;} else if(keys.has('a')||keys.has('arrowleft')){tryMove(-1,0,'left');lastMove=t;} else if(keys.has('d')||keys.has('arrowright')){tryMove(1,0,'right');lastMove=t;} } if(state.screen==='game' && state.started) draw(); requestAnimationFrame(loop); }
+  // Keyboard controls use e.code instead of e.key so WASD works even when the Korean IME is active.
+  window.addEventListener('keydown', e => {
+    const code = e.code;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight','KeyW','KeyA','KeyS','KeyD'].includes(code)) e.preventDefault();
+    if (code === 'KeyE') interact();
+    if (code === 'KeyN') nextDay();
+    if ((code === 'Enter' || code === 'Space') && dialogue.length) nextDialogue();
+    keys.add(code);
+  });
+  window.addEventListener('keyup', e => keys.delete(e.code));
+
+  function loop(t){
+    const running = keys.has('ShiftLeft') || keys.has('ShiftRight');
+    if(state.screen==='game' && state.started && !dialogue.length && !choiceActive && t-lastMove>(running?90:150)){
+      if(keys.has('KeyW')||keys.has('ArrowUp')){tryMove(0,-1,'up');lastMove=t;}
+      else if(keys.has('KeyS')||keys.has('ArrowDown')){tryMove(0,1,'down');lastMove=t;}
+      else if(keys.has('KeyA')||keys.has('ArrowLeft')){tryMove(-1,0,'left');lastMove=t;}
+      else if(keys.has('KeyD')||keys.has('ArrowRight')){tryMove(1,0,'right');lastMove=t;}
+    }
+    if(state.screen==='game' && state.started) draw();
+    requestAnimationFrame(loop);
+  }
   renderUI(); requestAnimationFrame(loop);
 })();
